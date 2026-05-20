@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Shop Inventory",
+    "slug": "shop-inventory",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.shopinventory.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow access to upload product images."
+        }
+      ],
+      "expo-asset",
+      "expo-font",
+      "expo-secure-store"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.shopinventory.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b2f9df6d-acfa-4e53-aea4-e241bd1b0af1"
+      }
+    },
+    "owner": "yashparmar24"
+  }
+}
