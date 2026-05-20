@@ -3,6 +3,7 @@ import type { Product, Sale, Customer, Supplier, Expense } from '../types';
 
 export type AuthStackParamList = {
   Login: undefined;
+  Signup: undefined;
   ForgotPassword: undefined;
   ResetPassword: { token?: string };
 };

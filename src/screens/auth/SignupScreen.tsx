@@ -10,28 +10,37 @@ import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../hooks/useTheme';
 import type { AuthStackParamList } from '../../navigation/types';
 
-export const LoginScreen = () => {
+export const SignupScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { colors } = useTheme();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  const [email, setEmail] = useState('admin@shop.com');
-  const [password, setPassword] = useState('admin123');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [shopName, setShopName] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+  const handleSignup = async () => {
+    if (!name || !email || !password) {
+      Alert.alert('Error', 'Please enter name, email, and password');
       return;
     }
+
     setLoading(true);
     try {
-      const { data } = await authService.login(email.trim(), password);
+      const { data } = await authService.register({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        shopName: shopName.trim() || undefined,
+      });
+
       if (data.token && data.user) {
         await setAuth(data.user, data.token);
       }
     } catch (e) {
-      Alert.alert('Login Failed', e instanceof Error ? e.message : 'Unknown error');
+      Alert.alert('Registration Failed', e instanceof Error ? e.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -48,32 +57,23 @@ export const LoginScreen = () => {
             <View className="w-20 h-20 rounded-2xl bg-primary-600 items-center justify-center mb-4">
               <Text className="text-white text-3xl font-bold">SI</Text>
             </View>
-            <Text className={`text-2xl font-bold ${colors.text}`}>Shop Inventory</Text>
-            <Text className={`text-sm mt-1 ${colors.textMuted}`}>Manage your shop efficiently</Text>
+            <Text className={`text-2xl font-bold ${colors.text}`}>Create Account</Text>
+            <Text className={`text-sm mt-1 ${colors.textMuted}`}>Start managing your shop today</Text>
           </View>
 
-          <Input label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" placeholder="admin@shop.com" />
+          <Input label="Name" value={name} onChangeText={setName} placeholder="John Doe" />
+          <Input label="Shop Name" value={shopName} onChangeText={setShopName} placeholder="My Awesome Shop" />
+          <Input label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" placeholder="you@example.com" />
           <Input label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
 
-          <Button title="Sign In" onPress={handleLogin} loading={loading} className="mt-2" />
+          <Button title="Create Account" onPress={handleSignup} loading={loading} className="mt-2" />
 
           <Button
-            title="Create account"
-            onPress={() => navigation.navigate('Signup')}
+            title="Already have an account? Sign In"
+            onPress={() => navigation.navigate('Login')}
             variant="outline"
             className="mt-3"
           />
-
-          <Button
-            title="Forgot Password?"
-            onPress={() => navigation.navigate('ForgotPassword')}
-            variant="outline"
-            className="mt-3"
-          />
-
-          <Text className={`text-center text-xs mt-8 ${colors.textMuted}`}>
-            Demo: admin@shop.com / admin123
-          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
