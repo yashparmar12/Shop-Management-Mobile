@@ -29,6 +29,9 @@ export const SaleDetailScreen = () => {
       <Header title={sale.invoiceNumber} showBack />
       <ScrollView className="px-4 pt-2">
         <Text className={`text-sm mb-4 ${colors.textMuted}`}>{formatDateTime(sale.createdAt || '')}</Text>
+        {sale.paymentMethod && (
+          <Text className={`text-sm mb-2 ${colors.textMuted}`}>Payment Method: {sale.paymentMethod.charAt(0).toUpperCase() + sale.paymentMethod.slice(1)}</Text>
+        )}
         <Card>
           {sale.items.map((item, i) => (
             <View key={i} className="flex-row justify-between py-2 border-b border-slate-100">
@@ -39,6 +42,10 @@ export const SaleDetailScreen = () => {
           <View className="pt-3">
             <Text className={`text-lg font-bold text-primary-600`}>Total: {formatCurrency(sale.total)}</Text>
             <Text className={`text-sm ${colors.textMuted}`}>Profit: {formatCurrency(sale.profit)}</Text>
+            <Text className={`text-sm ${colors.textMuted}`}>Paid: {formatCurrency(sale.amountPaid ?? 0)}</Text>
+            {sale.dueAmount > 0 && (
+              <Text className="text-lg font-bold text-red-600 mt-2">Due: {formatCurrency(sale.dueAmount)}</Text>
+            )}
           </View>
         </Card>
       </ScrollView>

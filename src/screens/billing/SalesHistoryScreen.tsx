@@ -41,10 +41,16 @@ export const SalesHistoryScreen = () => {
                 {item.customerName && (
                   <Text className={`text-xs ${colors.textMuted}`}>{item.customerName}</Text>
                 )}
+                {item.paymentMethod && (
+                  <Text className={`text-xs mt-1 ${colors.textMuted}`}>Payment: {item.paymentMethod.charAt(0).toUpperCase() + item.paymentMethod.slice(1)}</Text>
+                )}
               </View>
               <View className="items-end">
                 <Text className="text-primary-600 font-bold">{formatCurrency(item.total)}</Text>
                 <Text className={`text-xs text-green-600`}>+{formatCurrency(item.profit)}</Text>
+                {typeof item.amountPaid === 'number' && (
+                  <Text className="text-xs mt-1 text-slate-500">Paid: {formatCurrency(item.amountPaid)}</Text>
+                )}
               </View>
             </View>
           </Card>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { productService } from '../../services/productService';
 import { saleService } from '../../services/saleService';
+import { customerService } from '../../services/customerService';
 import { useCartStore } from '../../stores/cartStore';
 import { useTheme } from '../../hooks/useTheme';
 import { formatCurrency } from '../../utils/format';
@@ -23,12 +24,20 @@ export const CreateBillScreen = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
+  const [amountPaidInput, setAmountPaidInput] = useState('');
 
   const cart = useCartStore();
   const subtotal = cart.getSubtotal();
   const taxAmount = cart.getTaxAmount();
   const total = cart.getTotal();
   const profit = cart.getEstimatedProfit();
+
+  useEffect(() => {
+    if (!showCheckout) return;
+    // default amount paid: full for non-credit, 0 for credit
+    if (cart.paymentMethod === 'credit') setAmountPaidInput('0');
+    else setAmountPaidInput(String(total));
+  }, [showCheckout, cart.paymentMethod, total]);
 
   const { data: products } = useQuery({
     queryKey: ['products-bill', search],
@@ -39,16 +48,43 @@ export const CreateBillScreen = () => {
   });
 
   const saleMutation = useMutation({
-    mutationFn: () =>
-      saleService.create({
+    mutationFn: async () => {
+      // Ensure customer is linked or created
+      let customerId = cart.customerId;
+      if (!customerId && cart.customerName?.trim()) {
+        try {
+          const searchRes = await customerService.getAll(cart.customerName.trim());
+          const found = searchRes.data.data?.find((c) => c.name.trim().toLowerCase() === cart.customerName!.trim().toLowerCase());
+          if (found) {
+            customerId = found._id;
+          } else {
+            const createRes = await customerService.create({ name: cart.customerName!.trim() });
+            const newCustomer = createRes?.data?.data;
+            if (newCustomer && newCustomer._id) {
+              customerId = newCustomer._id;
+              cart.setCustomer(customerId, cart.customerName);
+            } else {
+              console.warn('Customer create returned unexpected response', createRes);
+            }
+          }
+        } catch (err) {
+          // ignore and continue without customerId
+          console.warn('Customer link/create failed', err);
+        }
+      }
+
+      const amtPaid = amountPaidInput !== '' ? Number(amountPaidInput) : cart.paymentMethod === 'credit' ? 0 : total;
+
+      return saleService.create({
         items: cart.items.map((i) => ({ productId: i.product._id, quantity: i.quantity })),
         discount: cart.discount,
         taxRate: cart.taxRate,
-        customerId: cart.customerId,
+        customerId,
         customerName: cart.customerName,
         paymentMethod: cart.paymentMethod,
-        amountPaid: cart.paymentMethod === 'credit' ? 0 : total,
-      }),
+        amountPaid: amtPaid,
+      });
+    },
     onSuccess: (res) => {
       cart.clearCart();
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -71,6 +107,23 @@ export const CreateBillScreen = () => {
             <SummaryRow label="Total" value={formatCurrency(total)} bold />
             <SummaryRow label="Est. Profit" value={formatCurrency(profit)} />
           </Card>
+          <Card className="mb-4">
+            <Text className={`font-semibold mb-2 ${colors.text}`}>Payment Method</Text>
+            <View className="flex-row space-x-2">
+              {['cash', 'card', 'upi', 'credit'].map((m) => (
+                <Pressable
+                  key={m}
+                  onPress={() => cart.setPaymentMethod(m)}
+                  className={`px-3 py-2 rounded-lg ${cart.paymentMethod === m ? 'bg-primary-600' : ''}`}
+                >
+                  <Text className={cart.paymentMethod === m ? 'text-white font-semibold' : colors.text}>
+                    {m.charAt(0).toUpperCase() + m.slice(1)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </Card>
+          <Input label="Amount Paid" value={amountPaidInput} onChangeText={setAmountPaidInput} keyboardType="numeric" />
           <Input label="Customer Name" value={cart.customerName || ''} onChangeText={(n) => cart.setCustomer(undefined, n)} />
           <Button title="Complete Sale" onPress={() => saleMutation.mutate()} loading={saleMutation.isPending} />
           <Button title="Back to Cart" onPress={() => setShowCheckout(false)} variant="outline" className="mt-2" />

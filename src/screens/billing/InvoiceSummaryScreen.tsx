@@ -55,6 +55,12 @@ export const InvoiceSummaryScreen = () => {
             {sale.taxAmount > 0 && <Row label={`GST (${sale.taxRate}%)`} value={formatCurrency(sale.taxAmount)} />}
             <Row label="Total" value={formatCurrency(sale.total)} bold />
             <Row label="Profit" value={formatCurrency(sale.profit)} />
+            {sale.dueAmount > 0 && (
+              <View className="mt-2">
+                <Text className="text-slate-500">Due</Text>
+                <Text className="font-bold text-lg text-red-600">{formatCurrency(sale.dueAmount)}</Text>
+              </View>
+            )}
           </View>
         </Card>
       </ScrollView>
