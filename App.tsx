@@ -7,6 +7,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { useAuthStore } from './src/stores/authStore';
 import { useThemeStore } from './src/stores/themeStore';
+import { Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +25,23 @@ export default function App() {
   useEffect(() => {
     hydrateAuth();
     hydrateTheme();
+
+      const setupNavBar = async () => {
+      if (Platform.OS !== 'android') return;
+
+      try {
+        await NavigationBar.setVisibilityAsync('hidden');
+        await NavigationBar.setBehaviorAsync('overlay-swipe');
+        await NavigationBar.setPositionAsync('absolute');
+        await NavigationBar.setBackgroundColorAsync('#00000000');
+        await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+      } catch (e) {
+        console.log('NavigationBar error:', e);
+      }
+    };
+
+    setupNavBar();
+
   }, []);
 
   if (isLoading) return null;

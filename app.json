@@ -16,9 +16,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f172a"
       },
-      "androidNavigationBar": {
-        "visible": "immersive"
-      },
       "package": "com.shopinventory.app",
       "permissions": [
         "android.permission.RECORD_AUDIO"
