@@ -4,7 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as NavigationBar from 'expo-navigation-bar';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { useAuthStore } from './src/stores/authStore';
 import { useThemeStore } from './src/stores/themeStore';
@@ -24,18 +23,6 @@ export default function App() {
   useEffect(() => {
     hydrateAuth();
     hydrateTheme();
-
-    const hideNavigation = async () => {
-      try {
-        await NavigationBar.setBehaviorAsync('overlay-swipe');
-        await NavigationBar.setVisibilityAsync('hidden');
-      } catch (error) {
-        // ignore if the API is unavailable in Expo Go or on some devices
-        console.warn('Navigation bar hide failed:', error);
-      }
-    };
-
-    hideNavigation();
   }, []);
 
   if (isLoading) return null;
